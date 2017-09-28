@@ -12,3 +12,5 @@ orig.txt
 opt.txt
 output.txt
 runtime.png
+
+.vscode/*
