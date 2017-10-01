@@ -8,7 +8,8 @@
 
 #ifdef OPT
 #define OUT_FILE "opt.txt"
-#else
+#endif
+#ifdef ORIG
 #define OUT_FILE "orig.txt"
 #endif
 
