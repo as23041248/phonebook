@@ -1,4 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "phonebook_opt.h"
 
@@ -15,9 +18,18 @@ entry *findName(char lastName[], entry *pHead)
 
 entry *append(char lastName[], entry *e)
 {
-    e->pNext = (entry *) malloc(sizeof(entry));
+    /* allocate memory for the new entry and put lastName */
+    entry *newEntry = (entry *)malloc(sizeof(entry));
+    strcpy(newEntry->lastName, lastName);
+    newEntry->pNext = NULL;
+
+    if (e == NULL) {
+        e = newEntry;
+        return e;
+    }
+
+    e->pNext = newEntry;
     e = e->pNext;
-    strcpy(e->lastName, lastName);
     e->pNext = NULL;
 
     return e;
