@@ -5,11 +5,19 @@
 #include <ctype.h>
 
 #include "phonebook_hash.h"
-
+#define ELF
 /* original version */
 entry *findName(char lastName[], entry *pHead[])
 {
-    unsigned int hashVal = BKDRHash(lastName);
+    unsigned int hashVal;
+#if defined BKDR
+    hashVal = BKDRHash(lastName);
+#endif
+
+#if defined ELF
+    hashVal = ELFHash(lastName);
+#endif
+
     while (pHead[hashVal] != NULL) {
         if (strcasecmp(lastName, pHead[hashVal]->lastName) == 0)
             return pHead[hashVal];
@@ -20,8 +28,14 @@ entry *findName(char lastName[], entry *pHead[])
 
 void append(char lastName[], entry *e[], entry *pHead[])
 {
-    unsigned int hashVal = BKDRHash(lastName);
+    unsigned int hashVal;
+#if defined BKDR
+    hashVal = BKDRHash(lastName);
+#endif
 
+#if defined ELF
+    hashVal = ELFHash(lastName);
+#endif
     /* allocate memory for the new entry and put lastName */
     entry *newEntry = (entry *)malloc(sizeof(entry));
     strcpy(newEntry->lastName, lastName);
@@ -34,6 +48,7 @@ void append(char lastName[], entry *e[], entry *pHead[])
     e[hashVal]->pNext = newEntry;
     e[hashVal] = newEntry;
 }
+
 // BKDR Hash Function
 unsigned int BKDRHash(char *str)
 {
@@ -43,4 +58,21 @@ unsigned int BKDRHash(char *str)
         hash = hash * seed + (*str++);
     }
     return (hash & 0x7FFFFFFF) % HASH_TABLE_SIZE;
+}
+
+unsigned int ELFHash(char *str)
+{
+    unsigned int h = 0, g;
+
+    while(*str) {
+        h = (h << 4) + (*str++);
+        g = h & 0xf0000000L;
+        if(g) {
+            h ^= g >> 24;
+        }
+
+        h &= ~g;
+    }
+
+    return h % HASH_TABLE_SIZE;
 }

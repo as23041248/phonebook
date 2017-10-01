@@ -28,5 +28,6 @@ typedef struct _PERSONAL_INFO {
 entry *findName(char lastName[], entry *pHead[]);
 void append(char lastName[], entry *e[], entry *pHead[]);
 unsigned int BKDRHash(char *str);
+unsigned int ELFHash(char *str);
 
 #endif
