@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
         e[i] = pHead[i];
     }
 #else
+#if defined(ORIG) || defined(OPT)
     e = pHead;
 #endif
 
@@ -161,9 +162,9 @@ int main(int argc, char *argv[])
     // printf("execution time of append() : %lf sec\n", cpu_time1);
     // printf("execution time of findName() : %lf sec\n", cpu_time2);
 
-    entry *temp = NULL;
-#ifdef HASH
+#if defined(HASH)
 
+    entry *temp = NULL;
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         temp = pHead[i];
         while(temp) {
@@ -172,7 +173,10 @@ int main(int argc, char *argv[])
             temp = pHead[i];
         }
     }
-#else
+#endif
+
+#ifdef defined(ORIG) || defined(OPT)
+    entry *temp = NULL;
     temp = pHead;
     while(temp) {
         pHead = pHead->pNext;
