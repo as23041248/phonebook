@@ -6,15 +6,15 @@
 
 #include IMPL
 
-#ifdef OPT
+#if defined(OPT)
 #define OUT_FILE "opt.txt"
 #endif
 
-#ifdef HASH
+#if defined(HASH)
 #define OUT_FILE "hash.txt"
 #endif
 
-#ifdef ORIG
+#if defined(ORIG)
 #define OUT_FILE "orig.txt"
 #endif
 
@@ -35,13 +35,14 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 int main(int argc, char *argv[])
 {
-    FILE *fp;
     int i = 0;
     char line[MAX_LAST_NAME_SIZE];
     struct timespec start, end;
     double cpu_time1, cpu_time2;
 
+#if defined (HASH) || defined (ORIG) || defined(OPT)
     /* check file opening */
+    FILE *fp;
     fp = fopen(DICT_FILE, "r");
     if (fp == NULL) {
         printf("cannot open the file\n");
@@ -49,30 +50,45 @@ int main(int argc, char *argv[])
     }
 
     /* build the entry */
-#ifdef HASH
+#if defined (HASH)
     entry *pHead[HASH_TABLE_SIZE], *e[HASH_TABLE_SIZE];
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         pHead[i] = e[i] = NULL;
     }
-#else
+#endif
+
+#if defined (ORIG) || defined(OPT)
     entry *pHead, *e;
     pHead = e = NULL;
 
 #endif
 
+#endif
+
+#if defined(HASH_MMAP)
+    entry *pHead[HASH_TABLE_SIZE], tail[HASH_TABLE_SIZE];
+    for (i = 0; i < HASH_TABLE_SIZE; i++) {
+        pHead[i] = tail[i] = NULL;
+    }
+#endif
+
 #if defined(__GNUC__)
-    __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
+    __builtin___clear_cache((char *)pHead, (char *)pHead + sizeof(entry));
 #endif
     clock_gettime(CLOCK_REALTIME, &start);
+
+#if defined(HASH) || defined(ORIG) || defined(OPT)
     while (fgets(line, sizeof(line), fp)) {
         while (line[i] != '\0')
             i++;
         line[i - 1] = '\0';
         i = 0;
 
-#ifdef HASH
+#if defined (HASH)
         append(line, e, pHead);
-#else
+#endif
+
+#if defined(ORIG) || defined(OPT)
         if(!pHead) {
             pHead = e = append(line, e);
         } else {
@@ -81,6 +97,7 @@ int main(int argc, char *argv[])
 #endif
 
     }
+#endif
 
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -88,11 +105,13 @@ int main(int argc, char *argv[])
     /* close file as soon as possible */
     fclose(fp);
 
-#ifdef HASH
+#if defined(HASH)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         e[i] = pHead[i];
     }
-#else
+#endif
+
+#if defined(ORIG) || defined(OPT)
     e = pHead;
 #endif
 
@@ -100,17 +119,21 @@ int main(int argc, char *argv[])
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
 
     /* reset the pointer location */
-#ifdef HASH
+#if defined(HASH)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         e[i] = pHead[i];
     }
-#else
+#endif
+
+#if defined(ORIG) || defined(OPT)
     e = pHead;
 #endif
 
+#if defined(ORIG) || defined(OPT) || defined(HASH)
     assert(findName(input, e) &&
            "Did you implement findName() in " IMPL "?");
     assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+#endif
 
 
     /* reset the pointer location */
