@@ -5,7 +5,6 @@
 
 #include "phonebook_orig.h"
 
-#define ORIG
 /* original version */
 entry *findName(char lastName[], entry *pHead)
 {

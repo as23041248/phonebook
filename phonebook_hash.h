@@ -5,7 +5,6 @@
 
 /* TODO: After modifying the original version, uncomment the following
  * line to set OPT properly */
-#define HASH
 #define HASH_TABLE_SIZE 1003
 
 typedef struct __PHONE_BOOK_ENTRY {
