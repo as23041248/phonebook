@@ -3,6 +3,11 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include IMPL
 
@@ -19,7 +24,10 @@
 #define OUT_FILE "orig.txt"
 #endif
 
-#define DICT_FILE "./dictionary/words.txt"
+#if defined (HASH_MMAP)
+#define DICT_FILE_BIN DICT_FILE ".bin"
+#define OUT_FILE "hash_mmap.txt"
+#endif
 
 static double diff_in_second(struct timespec t1, struct timespec t2)
 {
@@ -67,10 +75,11 @@ int main(int argc, char *argv[])
 
 #endif
 
-#if defined(HASH_MMAP)
-    entry *pHead[HASH_TABLE_SIZE], tail[HASH_TABLE_SIZE];
+#if defined (HASH_MMAP)
+    entry *pHead[HASH_TABLE_SIZE], *e[HASH_TABLE_SIZE];
+    format_data(DICT_FILE_BIN, DICT_FILE);
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
-        pHead[i] = tail[i] = NULL;
+        pHead[i] = e[i] = NULL;
     }
 #endif
 
@@ -101,6 +110,21 @@ int main(int argc, char *argv[])
     }
 #endif
 
+#if defined(HASH_MMAP)
+    int fd = open(DICT_FILE_BIN, O_RDONLY);
+    int size_of_file = file_size(DICT_FILE_BIN);
+    int size_of_entry = sizeof(entry);
+    void *block_start = mmap(NULL, size_of_file, PROT_WRITE, MAP_PRIVATE, fd, 0);
+    void *iterate = block_start;
+
+    while(iterate < block_start + size_of_file) {
+        append(iterate, pHead, e);
+        iterate += size_of_entry;
+    }
+    close(fd);
+
+#endif
+
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
 
@@ -109,7 +133,7 @@ int main(int argc, char *argv[])
     fclose(fp);
 #endif
 
-#if defined(HASH)
+#if defined(HASH) || defined(HASH_MMAP)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         e[i] = pHead[i];
     }
@@ -123,7 +147,7 @@ int main(int argc, char *argv[])
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
 
     /* reset the pointer location */
-#if defined(HASH)
+#if defined(HASH) || defined(HASH_MMAP)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         e[i] = pHead[i];
     }
@@ -133,7 +157,7 @@ int main(int argc, char *argv[])
     e = pHead;
 #endif
 
-#if defined(ORIG) || defined(OPT) || defined(HASH)
+#if defined(ORIG) || defined(OPT) || defined(HASH) || defined(HASH_MMAP)
     assert(findName(input, e) &&
            "Did you implement findName() in " IMPL "?");
     assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
@@ -141,11 +165,12 @@ int main(int argc, char *argv[])
 
 
     /* reset the pointer location */
-#ifdef HASH
+#if defined(HASH) || defined(HASH_MMAP)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
         e[i] = pHead[i];
     }
-#else
+#endif
+
 #if defined(ORIG) || defined(OPT)
     e = pHead;
 #endif
@@ -187,6 +212,10 @@ int main(int argc, char *argv[])
         free(temp);
         temp = pHead;
     }
+#endif
+
+#if defined(HASH_MMAP)
+    munmap(block_start, size_of_file);
 #endif
 
     return 0;

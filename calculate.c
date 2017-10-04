@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-# define TEST_CASE_NUM 3
+# define TEST_CASE_NUM 4
 typedef struct {
     char output[20];
     double sum_a;
@@ -15,7 +15,8 @@ int main(void)
     testcase cases[TEST_CASE_NUM] = {
         {"orig.txt"},
         {"opt.txt"},
-        {"hash.txt"}
+        {"hash.txt"},
+        {"hash_mmap.txt"}
     };
 
 
