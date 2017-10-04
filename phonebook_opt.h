@@ -9,6 +9,7 @@
 typedef struct __PHONE_BOOK_ENTRY {
     char lastName[MAX_LAST_NAME_SIZE];
     struct __PHONE_BOOK_ENTRY *pNext;
+    struct _PERSONAL_INFO *detail;
 } entry;
 
 typedef struct _PERSONAL_INFO {
