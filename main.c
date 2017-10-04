@@ -6,15 +6,16 @@
 
 #include IMPL
 
-#if defined(OPT)
+#define DICT_FILE "./dictionary/words.txt"
+#if defined (OPT)
 #define OUT_FILE "opt.txt"
 #endif
 
-#if defined(HASH)
+#if defined (HASH)
 #define OUT_FILE "hash.txt"
 #endif
 
-#if defined(ORIG)
+#if defined (ORIG)
 #define OUT_FILE "orig.txt"
 #endif
 
@@ -36,14 +37,15 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 int main(int argc, char *argv[])
 {
     int i = 0;
-    char line[MAX_LAST_NAME_SIZE];
     struct timespec start, end;
     double cpu_time1, cpu_time2;
 
-#if defined (HASH) || defined (ORIG) || defined(OPT)
+
+#if defined (HASH) || defined (ORIG) || defined (OPT)
     /* check file opening */
     FILE *fp;
     fp = fopen(DICT_FILE, "r");
+    char line[MAX_LAST_NAME_SIZE];
     if (fp == NULL) {
         printf("cannot open the file\n");
         return -1;
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-#if defined (ORIG) || defined(OPT)
+#if defined (ORIG) || defined (OPT)
     entry *pHead, *e;
     pHead = e = NULL;
 
@@ -103,7 +105,9 @@ int main(int argc, char *argv[])
     cpu_time1 = diff_in_second(start, end);
 
     /* close file as soon as possible */
+#if defined (HASH) || defined (ORIG) || defined(OPT)
     fclose(fp);
+#endif
 
 #if defined(HASH)
     for (i = 0; i < HASH_TABLE_SIZE; i++) {
@@ -175,7 +179,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-#ifdef defined(ORIG) || defined(OPT)
+#if defined(ORIG) || defined(OPT)
     entry *temp = NULL;
     temp = pHead;
     while(temp) {
